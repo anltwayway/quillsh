@@ -88,6 +88,9 @@ sort -t, -k3,3n "$temp_file" >> "$output_file"
 
 # 数据保存完成的消息
 echo "数据已保存到 $output_file，按 Frame 排序完成。"
+echo "输出最近10个数据："
+# 输出最后10个$amount
+cat "$output_file" | tail -n 10
 
 echo "==============================================="
 # 输出累计reward_file收益最大值
