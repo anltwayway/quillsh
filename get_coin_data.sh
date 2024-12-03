@@ -128,7 +128,7 @@ echo "最近$hours 小时的最小收益: $min_benefit QUIL，$min_benefit_worke
 # 计算平均值
 average_benefit=$(awk -F, '{sum += $1} END {if (NR > 0) print sum / NR}' "$reward_file")
 average_benefit_workers=$(awk "BEGIN {printf \"%.5f\", $average_benefit / $workers}")
-echo "最近$hours 小时的平均收益: $average_benefit QUIL， $average_benefit_workers / $workers QUIL/Workers"
+echo "最近$hours 小时的平均收益: $average_benefit QUIL， $average_benefit_workers QUIL/Workers"
 
 # 计算累计值
 total_benefit=$(awk -F, '{sum += $1} END {print sum}' "$reward_file")
