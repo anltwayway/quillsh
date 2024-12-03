@@ -132,7 +132,7 @@ echo "每月的收益: $monthly_benefit QUIL"
 echo "每月的收益: $monthly_benefit_usd USD"
 echo "每月的成本为 $cost_month_usd USD，收益率为"
 # 计算收益率
-monthly_benefit_usd_percent=$(echo "scale=2; $monthly_benefit_usd / 557.53 * 100" | bc)
+monthly_benefit_usd_percent=$(echo "scale=2; $monthly_benefit_usd / $cost_month_usd * 100" | bc)
 echo "$monthly_benefit_usd_percent %"
 
 echo "==============================================="
