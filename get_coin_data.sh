@@ -2,7 +2,6 @@
 
 # 获取当前日期（格式：YYYY-MM-DD）
 current_date=$(date "+%Y-%m-%d")
-
 # 设置输出文件名，带日期
 output_file="/root/coin_data_$current_date.csv"
 
