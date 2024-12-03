@@ -166,17 +166,17 @@ rm "$temp_file"
 rm "$hours_reward_file"
 rm "$reward_file"
 
-# 如果此时的时间大于23点，执行一个命令
-if [ "$(date +%H)" -gt 23 ]; then
-    echo "==============================================="
-    echo "当前时间大于 23 点，执行合并token的命令。"
-    # 进入指定目录并执行命令
-    cd ~ && cd ceremonyclient/node ||
-        { echo "无法进入指定目录，请检查路径。"; exit 1; }
+# # 如果此时的时间大于23点，执行一个命令
+# if [ "$(date +%H)" -gt 23 ]; then
+#     echo "==============================================="
+#     echo "当前时间大于 23 点，执行合并token的命令。"
+#     # 进入指定目录并执行命令
+#     cd ~ && cd ceremonyclient/node ||
+#         { echo "无法进入指定目录，请检查路径。"; exit 1; }
 
-    # 执行命令获取输出
-    output=$(./../client/qclient-2.0.4.1-linux-amd64 token merge all --public-rpc)
-fi
+#     # 执行命令获取输出
+#     output=$(./../client/qclient-2.0.4.1-linux-amd64 token merge all --public-rpc)
+# fi
 
 echo "==============================================="
 # 输出节点信息
