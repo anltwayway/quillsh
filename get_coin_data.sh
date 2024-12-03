@@ -116,23 +116,23 @@ reward_file="$hours_reward_file"
 
 # 提取最大值
 max_benefit=$(sort -t, -k1,1nr "$reward_file" | head -n 1 | awk -F, '{print $1}')
-max_benefit_workers=$(echo "scale=5; $max_benefit / $workers" | bc)
+max_benefit_workers=$(awk "BEGIN {printf \"%.5f\", $max_benefit / $workers}")
 echo "最近$hours 小时的最大收益: $max_benefit QUIL，$max_benefit_workers QUIL/Workers"
 
 # 提取最小值
 # 倒序后提取第三行
 min_benefit=$(sort -t, -k1,1nr "$reward_file" | tail -n +3 | tail -n 1 | awk -F, '{print $1}')
-min_benefit_workers=$(echo "scale=5; $min_benefit / $workers" | bc)
+min_benefit_workers=$(awk "BEGIN {printf \"%.5f\", $min_benefit / $workers}")
 echo "最近$hours 小时的最小收益: $min_benefit QUIL，$min_benefit_workers QUIL/Workers"
 
 # 计算平均值
 average_benefit=$(awk -F, '{sum += $1} END {if (NR > 0) print sum / NR}' "$reward_file")
-average_benefit_workers=$(echo "scale=5; $average_benefit / $workers" | bc)
+average_benefit_workers=$(awk "BEGIN {printf \"%.5f\", $average_benefit / $workers}")
 echo "最近$hours 小时的平均收益: $average_benefit QUIL， $average_benefit_workers / $workers QUIL/Workers"
 
 # 计算累计值
 total_benefit=$(awk -F, '{sum += $1} END {print sum}' "$reward_file")
-total_benefit_workers=$(echo "scale=5; $total_benefit / $workers" | bc)
+total_benefit_workers=$(awk "BEGIN {printf \"%.5f\", $total_benefit / $workers}")
 echo "最近$hours 小时的累计收益: $total_benefit QUIL，$total_benefit_workers QUIL/Workers"
 
 # 计算总条目数
