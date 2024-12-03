@@ -86,7 +86,24 @@ done
 # 按 Frame 排序（数字升序）
 sort -t, -k3,3n "$temp_file" >> "$output_file"
 
-# 数据保存完成的消息
+echo "==============================================="
+# 输出节点信息
+echo "输出节点信息..."
+cd "$HOME/ceremonyclient/node" && NODE_BINARY=$(find . -type f -executable -name "node-*" ! -name "*.dgst*" ! -name "*.sig*" | sort -V | tail -n 1 | xargs basename) && ./$NODE_BINARY -node-info
+
+cd "$HOME/ceremonyclient/node" && NODE_BINARY=$(find . -type f -executable -name "node-*" ! -name "*.dgst*" ! -name "*.sig*" | sort -V | tail -n 1 | xargs basename) && ./$NODE_BINARY -node-info > node_info.txt
+
+# 提取 Active Workers 的值
+workers=$(grep "Active Workers" node_info.txt | awk '{print $3}')
+
+# 输出 Active Workers 的值
+echo "线程数: $workers"
+
+# 清理临时文件
+rm node_info.txt
+
+echo "==============================================="
+
 echo "数据已保存到 $output_file，按 Frame 排序完成。"
 echo "输出最近10个数据："
 # 输出最后10个$amount
@@ -99,20 +116,24 @@ reward_file="$hours_reward_file"
 
 # 提取最大值
 max_benefit=$(sort -t, -k1,1nr "$reward_file" | head -n 1 | awk -F, '{print $1}')
-echo "最近$hours 小时的最大收益: $max_benefit QUIL"
+max_benefit_workers=$(echo "scale=5; $max_benefit / $workers" | bc)
+echo "最近$hours 小时的最大收益: $max_benefit QUIL，$max_benefit_workers QUIL/Workers"
 
 # 提取最小值
 # 倒序后提取第三行
 min_benefit=$(sort -t, -k1,1nr "$reward_file" | tail -n +3 | tail -n 1 | awk -F, '{print $1}')
-echo "最近$hours 小时的最小收益: $min_benefit QUIL"
+min_benefit_workers=$(echo "scale=5; $min_benefit / $workers" | bc)
+echo "最近$hours 小时的最小收益: $min_benefit QUIL，$min_benefit_workers QUIL/Workers"
 
 # 计算平均值
 average_benefit=$(awk -F, '{sum += $1} END {if (NR > 0) print sum / NR}' "$reward_file")
-echo "最近$hours 小时的平均收益: $average_benefit QUIL"
+average_benefit_workers=$(echo "scale=5; $average_benefit / $workers" | bc)
+echo "最近$hours 小时的平均收益: $average_benefit QUIL， $average_benefit_workers / $workers QUIL/Workers"
 
 # 计算累计值
 total_benefit=$(awk -F, '{sum += $1} END {print sum}' "$reward_file")
-echo "最近$hours 小时的累计收益: $total_benefit QUIL"
+total_benefit_workers=$(echo "scale=5; $total_benefit / $workers" | bc)
+echo "最近$hours 小时的累计收益: $total_benefit QUIL，$total_benefit_workers QUIL/Workers"
 
 # 计算总条目数
 total_entries=$(wc -l < "$reward_file")
@@ -182,7 +203,3 @@ rm "$reward_file"
 # fi
 
 echo "==============================================="
-# 输出节点信息
-echo "输出节点信息..."
-cd "$HOME/ceremonyclient/node" && NODE_BINARY=$(find . -type f -executable -name "node-*" ! -name "*.dgst*" ! -name "*.sig*" | sort -V | tail -n 1 | xargs basename) && ./$NODE_BINARY -node-info
-
