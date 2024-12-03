@@ -18,11 +18,16 @@ echo "Amount (QUIL),Coin ID,Frame,Timestamp" > "$output_file"
 
 # 选择要提取几小时的收益数据, 默认为 1 小时
 echo "==============================================="
-echo "请输入要提取的小时数（默认为 1 小时）："
+echo "请输入要提取的小时数（按下任意其他按键则默认为 1 小时）："
 # 根据输入的数字将变量hours赋值
 read -r hours
 # 如果用户未输入任何内容，则使用默认值
 : ${hours:=1}
+echo "请输入每月的成本USD（按下任意其他按键则默认为 100 USD）："
+# 根据输入的数字将变量hours赋值
+read -r cost_month_usd
+# 如果用户未输入任何内容，则使用默认值
+: ${cost_month_usd:=100}
 echo "提取最近 $hours 小时的收益数据..."
 
 # 临时文件用于存储未排序数据
@@ -125,7 +130,7 @@ monthly_benefit=$(echo "$daily_benefit * 30" | bc)
 monthly_benefit_usd=$(echo "$monthly_benefit * 0.12" | bc)
 echo "每月的收益: $monthly_benefit QUIL"
 echo "每月的收益: $monthly_benefit_usd USD"
-echo "每月的成本为557.53 USD，收益率为"
+echo "每月的成本为 $cost_month_usd USD，收益率为"
 # 计算收益率
 monthly_benefit_usd_percent=$(echo "scale=2; $monthly_benefit_usd / 557.53 * 100" | bc)
 echo "$monthly_benefit_usd_percent %"
