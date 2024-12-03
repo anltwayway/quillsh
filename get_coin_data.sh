@@ -17,17 +17,34 @@ echo "Amount (QUIL),Coin ID,Frame,Timestamp" > "$output_file"
 
 # 选择要提取几小时的收益数据, 默认为 1 小时
 echo "==============================================="
-echo "请输入要提取的小时数（按下任意其他按键则默认为 1 小时）："
-# 根据输入的数字将变量hours赋值
-read -r hours
-# 如果用户未输入任何内容，则使用默认值
-: ${hours:=1}
-echo "请输入每月的成本USD（按下任意其他按键则默认为 100 USD）："
-# 根据输入的数字将变量hours赋值
-read -r cost_month_usd
-# 如果用户未输入任何内容，则使用默认值
-: ${cost_month_usd:=100}
-echo "提取最近 $hours 小时的收益数据..."
+# 请用户输入Y，如果用户输入的是Y或y，则以下hours，cost_month_usd，quil_price均需要用户再输入，否则则均设置为默认值，echo默认值。
+a=1
+b=100
+c=0.12
+echo "是否不使用默认值（数据提取小时数，每月挖矿成本，Quil价格）？若不使用默认值请输入Y/y，按下任意其他按键则默认为均使用默认值"
+read -r input
+if [ "$input" = "Y" ] || [ "$input" = "y" ]; then
+    echo "请输入要提取的小时数（按下任意其他按键则默认为 $a 小时）："
+    # 根据输入的数字将变量hours赋值
+    read -r hours
+    # 如果用户未输入任何内容，则使用默认值
+    hours=${hours:-$a}
+    echo "请输入每月的成本USD（按下任意其他按键则默认为 $b USD）："
+    # 根据输入的数字将变量hours赋值
+    read -r cost_month_usd
+    # 如果用户未输入任何内容，则使用默认值
+    cost_month_usd=${cost_month_usd:-$b}
+    echo "请输入Quil价格（估算收益率用）（按下任意其他按键则默认为 $c USD）："
+    # 根据输入的数字将变量hours赋值
+    read -r quil_price
+    # 如果用户未输入任何内容，则使用默认值
+    quil_price=${quil_price:-$c}
+else
+    hours=$a
+    cost_month_usd=$b
+    quil_price=$c
+    echo "默认值：提取的小时数为 $hours 小时，每月挖矿成本为 $cost_month_usd USD，Quil价格为 $quil_price USD"
+fi
 
 # 临时文件用于存储未排序数据
 temp_file=$(mktemp)
@@ -142,21 +159,31 @@ echo "==============================================="
 # 根据最近$hour小时收益推算每天收益以及每月收益, 并给出quil按照0.12usd价格换算得到的usd的价值
 # 1. 每小时收益 * 24 = 每天收益
 daily_benefit=$(echo "$total_benefit * 24 / $hours" | bc)
-# 按照收益*0.12usd计算
-daily_benefit_usd=$(echo "$daily_benefit * 0.12" | bc)
-echo "按照最近$hours 小时推算，假定Quil价格为0.12usd"
+# 按照收益*$quil_price usd计算
+daily_benefit_usd=$(echo "$daily_benefit * $quil_price" | bc)
+echo "按照最近$hours 小时推算，假定Quil价格为 $quil_price usd"
 echo "每天的收益: $daily_benefit QUIL"
-echo "每天的收益: $daily_benefit_usd USD"
+echo "每天的收益: $daily_benefit_usd USD, 1 QUIL = $quil_price USD"
 # 2. 每天收益 * 30 = 每月收益
 monthly_benefit=$(echo "$daily_benefit * 30" | bc)
-# 按照收益*0.12usd计算
-monthly_benefit_usd=$(echo "$monthly_benefit * 0.12" | bc)
+# 按照收益*$quil_price usd计算
+monthly_benefit_usd=$(echo "$monthly_benefit * $quil_price" | bc)
 echo "每月的收益: $monthly_benefit QUIL"
-echo "每月的收益: $monthly_benefit_usd USD"
-echo "每月的成本为 $cost_month_usd USD，收益率为"
+echo "每月的收益: $monthly_benefit_usd USD, 1 QUIL = $quil_price USD"
+echo "每月的成本 $cost_month_usd USD"
 # 计算收益率
 monthly_benefit_usd_percent=$(echo "scale=2; $monthly_benefit_usd / $cost_month_usd * 100" | bc)
-echo "$monthly_benefit_usd_percent %"
+echo "收益率: $monthly_benefit_usd_percent %"
+# 如果收益率大于100%，则输出恭喜你，你的节点是盈利的！否则输出很抱歉，你的节点是亏损的。
+# 要达到盈亏平衡点，需要的每天Quil数量
+quil_break_even=$(echo "$cost_month_usd / 30 / $quil_price" | bc)
+if [ $(echo "$monthly_benefit_usd_percent > 100" | bc) -eq 1 ]; then
+    echo "盈亏平衡点每天所需Quil数量: $quil_break_even QUIL"
+    echo "恭喜你，你的节点是盈利的！"
+else
+    echo "盈亏平衡点每天所需Quil数量: $quil_break_even QUIL，现在每天的Quil数量为 $daily_benefit QUIL，差距为 $(echo "$daily_benefit - $quil_break_even" | bc) QUIL"
+    echo "很抱歉，你的节点是亏损的。"
+fi
 
 echo "==============================================="
 # 输出累计reward_file收益最大值
