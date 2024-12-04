@@ -121,9 +121,9 @@ rm node_info.txt
 echo "==============================================="
 
 echo "数据已保存到 $output_file，按 Frame 排序完成。"
-echo "输出最近10个数据："
-# 输出最后10个$amount
-cat "$output_file" | tail -n 10
+echo "输出最近20个数据："
+# 输出最后20个$amount
+cat "$output_file" | tail -n 20
 
 echo "==============================================="
 # 输出累计reward_file收益最大值
@@ -154,7 +154,9 @@ echo "最近$hours 小时的累计收益: $total_benefit QUIL，$total_benefit_w
 # 计算总条目数
 total_entries=$(wc -l < "$reward_file")
 echo "最近$hours 小时的总frame数: $total_entries"
-
+# 输出最近$hours小时的QUIL的平均成本, 显示5位小数，用awk的方式
+average_benefit_usd=$(awk "BEGIN {printf \"%.5f\", $cost_month_usd / 30 / 24 * $hours / $total_benefit}")
+echo "最近$hours 小时的QUIL的平均成本: $average_benefit_usd USD"
 echo "==============================================="
 # 根据最近$hour小时收益推算每天收益以及每月收益, 并给出quil按照0.12usd价格换算得到的usd的价值
 # 1. 每小时收益 * 24 = 每天收益
@@ -171,13 +173,16 @@ monthly_benefit_usd=$(echo "$monthly_benefit * $quil_price" | bc)
 echo "每月的收益: $monthly_benefit QUIL"
 echo "每月的收益: $monthly_benefit_usd USD, 1 QUIL = $quil_price USD"
 echo "每月的成本 $cost_month_usd USD"
+# 计算每个QUIL的成本, 显示5位小数，用awk的方式
+cost_per_quil=$(awk "BEGIN {printf \"%.5f\", $cost_month_usd / $monthly_benefit}")
+echo "每个QUIL的成本: $cost_per_quil USD"
 # 计算收益率
-monthly_benefit_usd_percent=$(echo "scale=2; $monthly_benefit_usd / $cost_month_usd * 100" | bc)
+monthly_benefit_usd_percent=$(echo "scale=2; ($monthly_benefit_usd - $cost_month_usd) / $cost_month_usd * 100" | bc)
 echo "收益率: $monthly_benefit_usd_percent %"
-# 如果收益率大于100%，则输出恭喜你，你的节点是盈利的！否则输出很抱歉，你的节点是亏损的。
+# 如果收益率大于0，则输出恭喜你，你的节点是盈利的！否则输出很抱歉，你的节点是亏损的。
 # 要达到盈亏平衡点，需要的每天Quil数量
 quil_break_even=$(echo "$cost_month_usd / 30 / $quil_price" | bc)
-if [ $(echo "$monthly_benefit_usd_percent > 100" | bc) -eq 1 ]; then
+if [ $(echo "$monthly_benefit_usd_percent > 0" | bc) -eq 1 ]; then
     echo "盈亏平衡点每天所需Quil数量: $quil_break_even QUIL"
     echo "恭喜你，你的节点是盈利的！"
 else
