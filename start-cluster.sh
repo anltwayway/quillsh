@@ -7,7 +7,7 @@ PARENT_PID=$$
 
 # Some variables for paths and binaries
 QUIL_NODE_PATH=$HOME/ceremonyclient/node
-NODE_BINARY=node-2.0.4.2-linux-amd64 # or whatever it is
+NODE_BINARY=$(find . -type f -executable -name "node-*" ! -name "*.dgst*" ! -name "*.sig*" | sort -V | tail -n 1 | xargs basename)
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
